@@ -27,6 +27,8 @@ const updateSkinsDB = async () => {
   } catch (error) {
     console.log(error);
   }
+
+  console.log("Fetched");
 };
 
 const start = () => {
@@ -56,8 +58,10 @@ app.get("/db", (req, res) => {
 });
 
 app.listen(3000, async () => {
-  mongoClient.connect().then(() => {
-    console.log(`Server is live.`);
-    start();
-  });
+  start();
+
+  // mongoClient.connect().then(() => {
+  //   console.log(`Server is live.`);
+  //   start();
+  // });
 });
