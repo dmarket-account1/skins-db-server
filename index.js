@@ -14,54 +14,50 @@ const MONGODB_URL = process.env.MONGODB_URL;
 
 const mongoClient = new mongodb.MongoClient(MONGODB_URL);
 
-let data = { db: null, lastUpdated: null };
+const DB = () => {
+  const db = mongoClient.db("steam-skins");
+  return db;
+};
 
 const updateSkinsDB = async () => {
   try {
     const response = await axios.get(
       "http://csgobackpack.net/api/GetItemsList/v2/"
     );
-    data.db = response.data["items_list"];
-    const time = new Date();
-    data.lastUpdated = `${time.toDateString()}, ${time.toLocaleTimeString()}`;
+    let skinsObject = response.data["items_list"];
+    for (let [key, value] of Object.entries(skinsObject)) {
+      if (!key.includes("Sticker")) {
+        delete skinsObject[key];
+      }
+    }
+
+    await DB()
+      .collection("items-db")
+      .updateOne(
+        { id: "items-db" },
+        {
+          $set: {
+            lastUpdated: new Date(),
+            data: skinsObject,
+          },
+        }
+      );
   } catch (error) {
     console.log(error);
   }
-
-  console.log("Fetched");
 };
 
 const start = () => {
-  setTimeout(() => {
-    updateSkinsDB();
-  }, 0);
+  updateSkinsDB();
+
   setInterval(() => {
     updateSkinsDB;
-  }, 21600 * 1000);
+  }, 10800 * 1000);
 };
 
-app.get("/", (req, res) => {
-  res.status(200).json({
-    status: "SkinsDB is working.",
-    info: {
-      "last_updated": data.lastUpdated,
-    },
-  });
-});
-
-app.get("/db", (req, res) => {
-  if (data.db) {
-    res.status(200).json(data.db);
-  } else {
-    res.status(400).send("Try one more time");
-  }
-});
-
 app.listen(3000, async () => {
-  start();
-
-  // mongoClient.connect().then(() => {
-  //   console.log(`Server is live.`);
-  //   start();
-  // });
+  mongoClient.connect().then(() => {
+    console.log(`Server is live.`);
+    start();
+  });
 });
