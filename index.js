@@ -17,12 +17,16 @@ const mongoClient = new mongodb.MongoClient(MONGODB_URL);
 let data = { db: null, lastUpdated: null };
 
 const updateSkinsDB = async () => {
-  const response = await axios.get(
-    "http://csgobackpack.net/api/GetItemsList/v2/"
-  );
-  data.db = response.data["items_list"];
-  const time = new Date();
-  data.lastUpdated = `${time.toDateString()}, ${time.toLocaleTimeString()}`;
+  try {
+    const response = await axios.get(
+      "http://csgobackpack.net/api/GetItemsList/v2/"
+    );
+    data.db = response.data["items_list"];
+    const time = new Date();
+    data.lastUpdated = `${time.toDateString()}, ${time.toLocaleTimeString()}`;
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 const start = () => {
