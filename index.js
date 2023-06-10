@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import * as mongodb from "mongodb";
 import dotenv from "dotenv";
-import axios from "axios";
 
 const app = express();
 app.use(cors());
@@ -14,27 +13,18 @@ const MONGODB_URL = process.env.MONGODB_URL;
 
 const mongoClient = new mongodb.MongoClient(MONGODB_URL);
 
-let data = { db: null, lastUpdated: null };
+let data = {};
 
 const updateSkinsDB = async () => {
-  try {
-    const response = await axios.get(
-      "http://csgobackpack.net/api/GetItemsList/v2/"
-    );
-    data.db = response.data["items_list"];
-    const time = new Date();
-    data.lastUpdated = `${time.toDateString()}, ${time.toLocaleTimeString()}`;
-  } catch (error) {
-    console.log(error);
-  }
-
-  console.log("Fetched");
+  const db = mongoClient.db("steam-skins");
+  data = { ...db.collection("items-db").findOne({ id: "items-db" }) };
+  delete data._id;
+  delete data.id;
 };
 
 const start = () => {
-  setTimeout(() => {
-    updateSkinsDB();
-  }, 0);
+  updateSkinsDB();
+
   setInterval(() => {
     updateSkinsDB;
   }, 21600 * 1000);
@@ -50,18 +40,16 @@ app.get("/", (req, res) => {
 });
 
 app.get("/db", (req, res) => {
-  if (data.db) {
-    res.status(200).json(data.db);
+  if (data.data) {
+    res.status(200).json(data.data);
   } else {
     res.status(400).send("Try one more time");
   }
 });
 
 app.listen(3000, async () => {
-  start();
-
-  // mongoClient.connect().then(() => {
-  //   console.log(`Server is live.`);
-  //   start();
-  // });
+  mongoClient.connect().then(() => {
+    console.log(`Server is live.`);
+    start();
+  });
 });
