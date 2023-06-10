@@ -31,7 +31,8 @@ app.get("/db", async (req, res) => {
   try {
     const data = await updateSkinsDB();
     res.status(200).json(data);
-  } catch (e) {
+  } catch (error) {
+    console.log(error);
     res.status(400).send("Try again later.");
   }
 });
