@@ -15,7 +15,9 @@ const mongoClient = new mongodb.MongoClient(MONGODB_URL);
 
 const updateSkinsDB = async () => {
   const db = mongoClient.db("steam-skins");
-  const data = { ...db.collection("items-db").findOne({ id: "items-db" }) };
+  const data = {
+    ...(await db.collection("items-db").findOne({ id: "items-db" })),
+  };
   delete data._id;
   delete data.id;
   return data;
