@@ -63,9 +63,10 @@ app.post("/add-skin", async (req, res) => {
   }
 
   const db = mongoClient.db("steam-skins");
-  const isSkin = db.collection("skins").findOne({
+  const isSkin = db.collection("skins").find({
     "extra.floatValue": body.data.extra.floatValue,
   });
+  console.log(isSkin);
 
   if (isSkin) {
     res.status(400).send("Skin has been already added");
