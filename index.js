@@ -50,9 +50,9 @@ const updateSkinsDB = async () => {
 const start = () => {
   updateSkinsDB();
 
-  setInterval(() => {
-    updateSkinsDB;
-  }, 10800 * 1000);
+  // setInterval(() => {
+  //   updateSkinsDB;
+  // }, 10800 * 1000);
 };
 
 app.listen(3000, async () => {
