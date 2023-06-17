@@ -69,6 +69,7 @@ app.post("/add-skin", async (req, res) => {
 
   if (isSkin) {
     res.status(400).send("Skin has been already added");
+    return;
   }
   body.data.date = new Date(body.data.date);
   await db.collection("skins").insertOne(body.data);
