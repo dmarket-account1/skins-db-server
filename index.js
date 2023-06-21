@@ -78,13 +78,13 @@ app.post("/add-skin", async (req, res) => {
   res.status(200).send("Success");
 });
 
-app.get("/skins", async (req, res) => {
-  // const query = req.query;
-  // const filter = {};
-  const db = mongoClient.db("steam-skins");
-  const skins = await db.collection("skins").find({}).toArray();
-  res.status(200).json({ data: skins });
-});
+// app.get("/skins", async (req, res) => {
+//   // const query = req.query;
+//   // const filter = {};
+//   const db = mongoClient.db("steam-skins");
+//   const skins = await db.collection("skins").find({}).toArray();
+//   res.status(200).json({ data: skins });
+// });
 
 app.listen(3000, async () => {
   mongoClient.connect().then(() => {
