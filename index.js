@@ -103,6 +103,7 @@ app.get("/statistics", authCheck, async (req, res) => {
   const db = mongoClient.db("steam-skins");
   const skins = await db.collection("skins").find({}).toArray();
   const today = new Date();
+
   const todaySkins = skins.filter((skin) => {
     const skinDate = new Date(skin.date);
     if (
