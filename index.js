@@ -32,8 +32,6 @@ const authCheck = async (req, res, next) => {
   next();
 };
 
-app.use(authCheck);
-
 const updateSkinsDB = async () => {
   const db = mongoClient.db("steam-skins");
   const data = {
@@ -44,7 +42,7 @@ const updateSkinsDB = async () => {
   return data;
 };
 
-app.get("/", (req, res) => {
+app.get("/", authCheck, (req, res) => {
   res.status(200).json({
     status: "SkinsDB is working.",
   });
@@ -60,7 +58,7 @@ app.get("/db", async (req, res) => {
   }
 });
 
-app.post("/add-skin", async (req, res) => {
+app.post("/add-skin", authCheck, async (req, res) => {
   const body = req.body;
 
   if (body.data == undefined) {
@@ -82,7 +80,7 @@ app.post("/add-skin", async (req, res) => {
         .collection("skins")
         .findOneAndUpdate(
           { "extra.floatValue": body.data.extra.floatValue },
-          { $set: { status: "TxSuccess" } }
+          { $set: body.data }
         );
       res.status(200).send("Success");
     }
@@ -95,13 +93,13 @@ app.post("/add-skin", async (req, res) => {
   res.status(200).send("Success");
 });
 
-app.get("/skins", async (req, res) => {
+app.get("/skins", authCheck, async (req, res) => {
   const db = mongoClient.db("steam-skins");
   const skins = await db.collection("skins").find({}).toArray();
   res.status(200).json({ data: skins });
 });
 
-app.get("/statistics", async (req, res) => {
+app.get("/statistics", authCheck, async (req, res) => {
   const db = mongoClient.db("steam-skins");
   const skins = await db.collection("skins").find({}).toArray();
   const today = new Date();
