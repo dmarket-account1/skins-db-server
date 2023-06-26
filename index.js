@@ -84,6 +84,7 @@ app.post("/add-skin", async (req, res) => {
           { "extra.floatValue": body.data.extra.floatValue },
           { $set: { status: "TxSuccess" } }
         );
+      res.status(200).send("Success");
     }
     res.status(400).send("Skin has been already added");
     return;
