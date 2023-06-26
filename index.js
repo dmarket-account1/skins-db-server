@@ -78,13 +78,63 @@ app.post("/add-skin", async (req, res) => {
   res.status(200).send("Success");
 });
 
-// app.get("/skins", async (req, res) => {
-//   // const query = req.query;
-//   // const filter = {};
-//   const db = mongoClient.db("steam-skins");
-//   const skins = await db.collection("skins").find({}).toArray();
-//   res.status(200).json({ data: skins });
-// });
+app.get("/skins", async (req, res) => {
+  // const query = req.query;
+  // const filter = {};
+  const db = mongoClient.db("steam-skins");
+  const skins = await db.collection("skins").find({}).toArray();
+  res.status(200).json({ data: skins });
+});
+
+app.get("/statistics", async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(400).send("Bad request.");
+    return;
+  }
+  try {
+    const token = authHeader.split(" ")[1];
+    if (token !== JWT_TOKEN) {
+      throw new Error("Try again later.");
+    }
+  } catch (error) {
+    res.status(401).send("Unauthorized.");
+    return;
+  }
+
+  const db = mongoClient.db("steam-skins");
+  const skins = await db.collection("skins").find({}).toArray();
+  const today = new Date();
+  const todaySkins = skins.filter((skin) => {
+    const skinDate = new Date(skin.date);
+    if (
+      skinDate.getDay() == today.getDay() &&
+      skinDate.getFullYear() == today.getFullYear()
+    ) {
+      return skin;
+    }
+  });
+  const last7Days = skins.filter((skin) => {
+    const skinDate = new Date(skin.date);
+    const todayMinus7Days = today.getTime() - 7 * 24 * 60 * 60 * 1000;
+    if (skinDate.getTime() > todayMinus7Days) {
+      return skin;
+    }
+  });
+  const last30Days = skins.filter((skin) => {
+    const skinDate = new Date(skin.date);
+    const todayMinus7Days = today.getTime() - 30 * 24 * 60 * 60 * 1000;
+    if (skinDate.getTime() > todayMinus7Days) {
+      return skin;
+    }
+  });
+
+  res.status(200).json({
+    "today": todaySkins,
+    "7 days": last7Days,
+    "30 days": last30Days,
+  });
+});
 
 app.listen(3000, async () => {
   mongoClient.connect().then(() => {
