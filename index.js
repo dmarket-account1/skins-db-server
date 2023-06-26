@@ -14,6 +14,26 @@ const JWT_TOKEN = process.env.JWT_TOKEN;
 
 const mongoClient = new mongodb.MongoClient(MONGODB_URL);
 
+const authCheck = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(400).send("Bad request.");
+    return;
+  }
+  try {
+    const token = authHeader.split(" ")[1];
+    if (token !== JWT_TOKEN) {
+      throw new Error("Try again later.");
+    }
+  } catch (error) {
+    res.status(401).send("Unauthorized.");
+    return;
+  }
+  next();
+};
+
+app.use(authCheck);
+
 const updateSkinsDB = async () => {
   const db = mongoClient.db("steam-skins");
   const data = {
@@ -41,20 +61,6 @@ app.get("/db", async (req, res) => {
 });
 
 app.post("/add-skin", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    res.status(400).send("Bad request.");
-    return;
-  }
-  try {
-    const token = authHeader.split(" ")[1];
-    if (token !== JWT_TOKEN) {
-      throw new Error("Try again later.");
-    }
-  } catch (error) {
-    res.status(401).send("Unauthorized.");
-    return;
-  }
   const body = req.body;
 
   if (body.data == undefined) {
@@ -63,12 +69,22 @@ app.post("/add-skin", async (req, res) => {
   }
 
   const db = mongoClient.db("steam-skins");
-
   const isSkin = await db.collection("skins").findOne({
     "extra.floatValue": body.data.extra.floatValue,
   });
 
   if (isSkin) {
+    if (
+      body.data.status.includes("TxSuccess") &&
+      isSkin.status.includes("TxFailed")
+    ) {
+      await db
+        .collection("skins")
+        .findOneAndUpdate(
+          { "extra.floatValue": body.data.extra.floatValue },
+          { $set: { status: "TxSuccess" } }
+        );
+    }
     res.status(400).send("Skin has been already added");
     return;
   }
@@ -79,29 +95,12 @@ app.post("/add-skin", async (req, res) => {
 });
 
 app.get("/skins", async (req, res) => {
-  // const query = req.query;
-  // const filter = {};
   const db = mongoClient.db("steam-skins");
   const skins = await db.collection("skins").find({}).toArray();
   res.status(200).json({ data: skins });
 });
 
 app.get("/statistics", async (req, res) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    res.status(400).send("Bad request.");
-    return;
-  }
-  try {
-    const token = authHeader.split(" ")[1];
-    if (token !== JWT_TOKEN) {
-      throw new Error("Try again later.");
-    }
-  } catch (error) {
-    res.status(401).send("Unauthorized.");
-    return;
-  }
-
   const db = mongoClient.db("steam-skins");
   const skins = await db.collection("skins").find({}).toArray();
   const today = new Date();
