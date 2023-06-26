@@ -106,10 +106,8 @@ app.get("/statistics", authCheck, async (req, res) => {
 
   const todaySkins = skins.filter((skin) => {
     const skinDate = new Date(skin.date);
-    if (
-      skinDate.getDay() == today.getDay() &&
-      skinDate.getFullYear() == today.getFullYear()
-    ) {
+
+    if (skinDate.getTime() > today.getTime() - 24 * 60 * 60 * 1000) {
       return skin;
     }
   });
