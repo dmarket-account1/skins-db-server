@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import * as mongodb from "mongodb";
 import dotenv from "dotenv";
-import skinRoute from "./routes/skin";
 
 const app = express();
 app.use(cors());
@@ -42,8 +41,6 @@ const updateSkinsDB = async () => {
   delete data.id;
   return data;
 };
-
-app.use("/skin", skinRoute);
 
 app.get("/", authCheck, (req, res) => {
   res.status(200).json({
