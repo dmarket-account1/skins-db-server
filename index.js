@@ -136,7 +136,46 @@ app.get("/statistics", authCheck, async (req, res) => {
   });
 });
 
-app.listen(3000, async () => {
+app.get("/buff/min-order", async (req, res) => {
+  const db = mongoClient.db("steam-skins");
+  const skins = await db
+    .collection("price-table")
+    .aggregate([
+      {
+        $addFields: {
+          minPriceNum: { $toDouble: "$markets.buff.min_price" },
+          orderPriceNum: { $toDouble: "$markets.buff.order_price" },
+        },
+      },
+      {
+        $match: {
+          minPriceNum: { $gt: 0, $gt: 35, $lte: 70 }, // Filter out documents where min_price is zero
+        },
+      },
+      {
+        $addFields: {
+          percentageDifference: {
+            $multiply: [
+              {
+                $divide: [
+                  { $subtract: ["$minPriceNum", "$orderPriceNum"] },
+                  "$orderPriceNum",
+                ],
+              },
+              100,
+            ],
+          },
+        },
+      },
+      { $sort: { percentageDifference: -1 } }, // Sort in descending order
+    ])
+    .limit(100)
+    .toArray();
+
+  res.json({ data: skins });
+});
+
+app.listen(8888, async () => {
   mongoClient.connect().then(() => {
     console.log(`Server is live.`);
   });
