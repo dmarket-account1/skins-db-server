@@ -146,7 +146,7 @@ app.get("/buff/min-order", async (req, res) => {
       },
       {
         $match: {
-          minPriceNum: { $gt: 0, $gt: 35, $lte: 70 }, // Filter out documents where min_price is zero
+          minPriceNum: { $gt: 0, $gt: 700, $lte: 100000 }, // Filter out documents where min_price is zero
         },
       },
       {
