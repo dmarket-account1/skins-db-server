@@ -134,6 +134,10 @@ app.get("/statistics", authCheck, async (req, res) => {
 });
 
 app.get("/buff/min-order", async (req, res) => {
+  const query = req.query;
+  const min_price = Number(query.min_price) || 0;
+  const max_price = Number(query.max_price) || 100000;
+
   const db = mongoClient.db("steam-skins");
   const skins = await db
     .collection("price-table")
@@ -146,7 +150,7 @@ app.get("/buff/min-order", async (req, res) => {
       },
       {
         $match: {
-          minPriceNum: { $gt: 0, $gt: 700, $lte: 100000 }, // Filter out documents where min_price is zero
+          minPriceNum: { $gt: 0, $gt: min_price, $lte: max_price }, // Filter out documents where min_price is zero
         },
       },
       {
